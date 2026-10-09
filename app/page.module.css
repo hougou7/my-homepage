@@ -1,0 +1,34 @@
+
+.homepage{
+    min-height: 100vh;
+    padding: 28px clamp(20px, 6vw, 88px);
+    display: flex;
+    flex-direction: column;
+    color: #f5f7fb;
+    background: #171923;
+}
+
+.header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.quicklinkSection{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color:#f5f7fb;
+    background: #2b2f44;
+    border:#33374b solid 1px;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.quicklinkSectionGrid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
