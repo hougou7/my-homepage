@@ -3,14 +3,20 @@
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    padding: 36px 16px;
+    border-radius: 20px;
+    background: var(--surface);
 }
 
 .clock{
-    font-size: 48px;
-    font-weight: bold;
+    font-size: clamp(42px, 7vw, 76px);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.04em;
 }
 
 .date{
     font-size: 16px;
-    color: #f5f7fb;
+    color: var(--muted);
+    margin: 0;
 }

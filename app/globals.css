@@ -2,7 +2,7 @@
   box-sizing: border-box;
 }
 
-.html {
+html {
   min-height: 100%;
   scroll-behavior: smooth;
 }
@@ -19,13 +19,15 @@ body {
     sans-serif;
 }
 
-button,input{
+button,input,select,textarea{
   font-family: inherit;
 }
 
-button:focusvisible,
-a:focusvisible,
-input:focusvisible{
-  outline: 2px solid #8495ff;
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible{
+  outline: 2px solid var(--accent, #8495ff);
   outline-offset: 2px;
 }

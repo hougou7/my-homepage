@@ -1,11 +1,15 @@
-"use client";
+'use client';
 
-import {useState,useEffect} from "react";
+import { useState, useEffect } from 'react';
+import styles from './TimeSection.module.css';
 
-import styles from "./TimeSection.module.css";
-import { time } from "console";
+type TimeSectionProps = {
+    hourFormat: '12' | '24';
+    showDate: boolean;
+    showSeconds: boolean;
+};
 
-export default function TimeSection() {
+export default function TimeSection({ hourFormat, showDate, showSeconds }: TimeSectionProps) {
     const [now, setNow] = useState<Date | null>(null);
     useEffect(() => {
         const updateTime = () => setNow(new Date());
@@ -20,7 +24,8 @@ export default function TimeSection() {
     const time = now?.toLocaleTimeString('zh-CN', {
     hour: '2-digit',
     minute: '2-digit',
-    hourCycle: 'h23',
+    second: showSeconds ? '2-digit' : undefined,
+    hourCycle: hourFormat === '12' ? 'h12' : 'h23',
     })
     
     const date = now?.toLocaleDateString('zh-CN', {
@@ -33,16 +38,16 @@ export default function TimeSection() {
     })
 
     return(
-        <section className={styles.timeSection}>
+        <section className={styles.timeSection} aria-label="当前时间">
             <time
                 className={styles.clock}
                 dateTime={now?.toISOString()}
             >
                 {time ?? '--:--'}
             </time>
-            <p className={styles.date}>
+            {showDate && <p className={styles.date}>
                 {now ? `${date} ${weekday}` : '--'}
-            </p>
+            </p>}
         </section>
     )
 }
