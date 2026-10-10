@@ -6,6 +6,7 @@
     flex-direction: column;
     color: #f5f7fb;
     background: #171923;
+    gap: 16px;
 }
 
 .header{
@@ -15,7 +16,30 @@
     gap: 16px;
 }
 
-.quicklinkSection{
+.searchSection{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-top: 32px;
+}
+
+.searchSection form{
+    width: 100%;
+    max-width: 800px;
+}
+
+.searchInput{
+    width: 100%;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    background-color: #2b2f44;
+    color: #f5f7fb;
+    font-size: 16px;
+}
+
+.quickLinksSection{
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -26,9 +50,35 @@
     text-decoration: none;
 }
 
-.quicklinkSectionGrid{
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+.quickLinksSectionGrid{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 16px;
     margin-top: 16px;
+}
+
+.quickLinksMark{
+  display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 24px;
+    width: 200px;
+    max-width: 100%;
+    box-sizing: border-box;
+
+    background: #252938;
+    border: 1px solid #393e50;
+    border-radius: 20px;
+    color: #f5f7fb;
+    text-decoration: none;
+    font-size: 22px;
+
+    transition: background 0.2s, transform 0.2s;
+}
+
+.quicklink{
+    color: #f5f7fb;
+    text-decoration: none;
 }
