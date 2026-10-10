@@ -22,6 +22,15 @@ export default function TimeSection() {
     minute: '2-digit',
     hourCycle: 'h23',
     })
+    
+    const date = now?.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    })
+    const weekday = now?.toLocaleDateString('zh-CN',{
+        weekday: 'long',
+    })
 
     return(
         <section className={styles.timeSection}>
@@ -31,7 +40,9 @@ export default function TimeSection() {
             >
                 {time ?? '--:--'}
             </time>
-    
+            <p className={styles.date}>
+                {now ? `${date} ${weekday}` : '--'}
+            </p>
         </section>
     )
 }

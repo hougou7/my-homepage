@@ -1,5 +1,7 @@
 import styles from './page.module.css'
 
+import TimeSection from '@/components/TimeSection'
+
 const quickLinks = [
   { name: 'ChatGPT', url: 'https://chat.openai.com/' },
   { name: 'Deepseek', url: 'https://www.deepseek.com/' },
@@ -15,6 +17,8 @@ export default function HomePage() {
         <h1>My Homepage</h1>
         <p>welcome to hougou</p>
       </header>
+
+      <TimeSection />
 
       <section className={styles.searchSection}>
         <h2>Search</h2>
