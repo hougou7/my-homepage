@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react';
 import styles from '@/app/page.module.css';
 import { isBackgroundImage, isWebUrl, searchEngines } from '@/lib/settings';
+import { formatMessage, messages } from '@/lib/i18n';
 import { useSettings } from './SettingsProvider';
 import SettingsPanel from './SettingsPanel';
 import TimeSection from './TimeSection';
@@ -10,6 +11,8 @@ import TimeSection from './TimeSection';
 export default function Homepage() {
   const { settings, ready, editing, notice } = useSettings();
   const engine = searchEngines[settings.searchEngine];
+  const text = messages[settings.language];
+  const engineName = settings.searchEngine === 'baidu' ? text.baidu : engine.name;
   const background = isBackgroundImage(settings.backgroundImage) ? settings.backgroundImage : '';
   const themeStyles = {
     '--accent': settings.accentColor,
@@ -18,27 +21,42 @@ export default function Homepage() {
 
   return (
     <main className={styles.homepage} data-theme={settings.theme} data-card-size={settings.cardSize} style={themeStyles}>
+      
       <header className={styles.header}>
         <div>
-          <h1>{settings.title || 'My Homepage'}</h1>
+          <h1>{settings.title || text.defaultTitle}</h1>
           {settings.greeting && <p>{settings.greeting}</p>}
         </div>
         <SettingsPanel />
       </header>
+      
       {!editing && notice && <p className={styles.notice} role="status">{notice}</p>}
+      
       <div className={styles.modules} aria-busy={!ready}>
         {settings.modules.map((moduleId) => {
           if (!settings.visible[moduleId]) return null;
           if (moduleId === 'time') {
-            return <TimeSection key={moduleId} hourFormat={settings.hourFormat} showDate={settings.showDate} showSeconds={settings.showSeconds} />;
+            return <TimeSection key={moduleId} 
+            language={settings.language}
+            hourFormat={settings.hourFormat} 
+            showDate={settings.showDate} 
+            showSeconds={settings.showSeconds} 
+            />;
           }
           if (moduleId === 'search') {
             return (
-              <section key={moduleId} className={styles.searchSection} aria-label="网页搜索">
-                <form action={engine.action} method="GET" target={settings.searchNewTab ? '_blank' : undefined} rel="noopener noreferrer">
-                  <span className={styles.engine}>{engine.name}</span>
-                  <input type="search" name={engine.query} aria-label={`使用 ${engine.name} 搜索`} placeholder={`使用 ${engine.name} 搜索…`} required className={styles.searchInput} />
-                  <button type="submit" className={styles.searchButton}>搜索</button>
+              <section key={moduleId} className={styles.searchSection} aria-label={text.webSearch}>
+                <form action={engine.action} 
+                      method="GET" 
+                      target={settings.searchNewTab ? '_blank' : undefined} 
+                      rel="noopener noreferrer">
+                  <span className={styles.engine}>{engineName}</span>
+                  <input type="search" name={engine.query} 
+                        aria-label={formatMessage(text.searchWith, { engine: engineName })}
+                        placeholder={formatMessage(text.searchPlaceholder, { engine: engineName })}
+                        onInvalid={(event) => event.currentTarget.setCustomValidity(text.searchRequired)}
+                        onInput={(event) => event.currentTarget.setCustomValidity('')}
+                        required className={styles.searchInput} />
                 </form>
               </section>
             );
@@ -46,24 +64,24 @@ export default function Homepage() {
           return (
             <section key={moduleId} className={styles.quickLinksSection} aria-labelledby="quick-links-title">
               <div className={styles.sectionHeading}>
-                <h2 id="quick-links-title">快捷链接</h2>
-                <span>{settings.quickLinks.length} 个站点</span>
+                <h2 id="quick-links-title">{text.links}</h2>
               </div>
               <div className={styles.quickLinksSectionGrid}>
                 {settings.quickLinks.map((link) => (
                   <a key={link.id} href={isWebUrl(link.url) ? link.url : undefined} target={settings.linksNewTab ? '_blank' : undefined} rel="noopener noreferrer" className={styles.quicklink}>
                     <span className={styles.linkIcon} aria-hidden="true">{link.name.trim().slice(0, 1).toUpperCase() || '+'}</span>
-                    <span className={styles.linkName}>{link.name || '未命名链接'}</span>
-                    <span className={styles.linkHost}>{isWebUrl(link.url) ? new URL(link.url).hostname : '请输入网址'}</span>
+                    <span className={styles.linkName}>{link.name || text.unnamedLink}</span>
+                    <span className={styles.linkHost}>{isWebUrl(link.url) ? new URL(link.url).hostname : text.enterUrl}</span>
                   </a>
                 ))}
               </div>
-              {settings.quickLinks.length === 0 && <p className={styles.empty}>还没有快捷链接，可以在设置中添加。</p>}
+              {settings.quickLinks.length === 0 && <p className={styles.empty}>{text.noLinks}</p>}
             </section>
           );
         })}
-        {settings.modules.every((moduleId) => !settings.visible[moduleId]) && <p className={styles.empty}>所有模块已隐藏，可以在设置中重新开启。</p>}
+        {settings.modules.every((moduleId) => !settings.visible[moduleId]) && <p className={styles.empty}>{text.noModules}</p>}
       </div>
+    
     </main>
   );
 }

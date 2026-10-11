@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import styles from './TimeSection.module.css';
+import { messages, type Language } from '@/lib/i18n';
 
 type TimeSectionProps = {
+    language: Language;
     hourFormat: '12' | '24';
     showDate: boolean;
     showSeconds: boolean;
 };
 
-export default function TimeSection({ hourFormat, showDate, showSeconds }: TimeSectionProps) {
+export default function TimeSection({ language, hourFormat, showDate, showSeconds }: TimeSectionProps) {
     const [now, setNow] = useState<Date | null>(null);
     useEffect(() => {
         const updateTime = () => setNow(new Date());
@@ -21,24 +23,24 @@ export default function TimeSection({ hourFormat, showDate, showSeconds }: TimeS
         };
     },[]) 
 
-    const time = now?.toLocaleTimeString('zh-CN', {
+    const time = now?.toLocaleTimeString(language, {
     hour: '2-digit',
     minute: '2-digit',
     second: showSeconds ? '2-digit' : undefined,
     hourCycle: hourFormat === '12' ? 'h12' : 'h23',
     })
     
-    const date = now?.toLocaleDateString('zh-CN', {
+    const date = now?.toLocaleDateString(language, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
     })
-    const weekday = now?.toLocaleDateString('zh-CN',{
+    const weekday = now?.toLocaleDateString(language,{
         weekday: 'long',
     })
 
     return(
-        <section className={styles.timeSection} aria-label="当前时间">
+        <section className={styles.timeSection} aria-label={messages[language].currentTime}>
             <time
                 className={styles.clock}
                 dateTime={now?.toISOString()}

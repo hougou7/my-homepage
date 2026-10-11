@@ -1,7 +1,8 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { defaultSettings, parseSettings, STORAGE_KEY, type Settings } from '@/lib/settings';
+import { defaultSettings, parseSettings, SettingsValidationError, STORAGE_KEY, type Settings } from '@/lib/settings';
+import { messages, type MessageKey } from '@/lib/i18n';
 
 type SettingsContextValue = {
   settings: Settings;
@@ -21,7 +22,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [draft, setDraft] = useState(defaultSettings);
   const [ready, setReady] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [notice, setNotice] = useState('');
+  const [notice, setNotice] = useState<MessageKey | null>(null);
+  const settings = editing ? draft : saved;
+
+  useEffect(() => {
+    document.documentElement.lang = settings.language;
+    document.title = settings.title || messages[settings.language].defaultTitle;
+  }, [settings.language, settings.title]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -31,7 +38,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         setSaved(settings);
         setDraft(settings);
       } catch {
-        setNotice('无法读取已保存的设置，已使用默认配置。你仍可尝试保存。');
+        setNotice('loadFailed');
       }
       setReady(true);
     }, 0);
@@ -40,13 +47,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   function begin() {
     setDraft(saved);
-    setNotice('');
+    setNotice(null);
     setEditing(true);
   }
 
   function cancel() {
     setDraft(saved);
-    setNotice('');
+    setNotice(null);
     setEditing(false);
   }
 
@@ -55,28 +62,28 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     try {
       validated = parseSettings(draft);
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : '设置格式无效。');
+      setNotice(error instanceof SettingsValidationError ? error.key : 'invalidSettings');
       return false;
     }
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(validated));
     } catch {
-      setNotice('保存失败：浏览器存储不可用或空间不足，请缩小背景图片后重试。');
+      setNotice('saveFailed');
       return false;
     }
     setSaved(validated);
     setDraft(validated);
     setEditing(false);
-    setNotice('设置已保存在此浏览器。');
+    setNotice('saved');
     return true;
   }
 
   return (
     <SettingsContext.Provider value={{
-      settings: editing ? draft : saved,
+      settings,
       ready,
       editing,
-      notice,
+      notice: notice ? messages[settings.language][notice] : '',
       update: (changes) => setDraft((current) => ({ ...current, ...changes })),
       begin,
       cancel,

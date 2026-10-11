@@ -4,7 +4,7 @@ This is a customizable homepage built with Next.js and React.
 
 Open **设置** in the upper-right corner to customize the homepage. Desktop uses a side panel; mobile uses a full-screen panel. Changes preview immediately. **保存设置** validates and saves them; **取消**, the close button, or Escape restores the last saved configuration.
 
-- **基本信息**: homepage title and welcome message.
+- **基本信息 / General**: Chinese or English interface language, homepage title and welcome message. Language changes preview instantly, apply to all labels, status messages and date/time formatting, and are saved in this browser. Custom titles, welcome messages and link names are preserved. Default titles and welcome messages follow the selected language. Older configurations without a language remain compatible and default to Chinese.
 - **快捷链接**: add, edit, delete and reorder up to 50 links; choose whether they open in a new tab.
 - **搜索**: Bing, Google or Baidu, with optional results in a new tab.
 - **外观**: dark, light or system theme; accent color; background URL or a local PNG, JPEG, WebP or GIF up to 1.5 MB.
@@ -14,7 +14,7 @@ Open **设置** in the upper-right corner to customize the homepage. Desktop use
 
 Settings and uploaded images are stored in this browser's `localStorage` under `my-homepage:settings:v1` for the current site origin. No account, server storage or cross-device sync is used. Clearing site data removes settings; export JSON to keep a backup. Image URLs must point to accessible images. If storage is unavailable or full, saving displays an error and keeps the panel open.
 
-Default settings, validation and search providers live in `lib/settings.ts`. `SettingsProvider` manages the saved configuration and preview; `SettingsPanel` provides the editor.
+Default settings, validation and search providers live in `lib/settings.ts`. Translations live in `lib/i18n.ts`. `SettingsProvider` manages the saved configuration and preview; `SettingsPanel` provides the editor. Restore defaults keeps the current interface language.
 
 ## Getting Started
 

@@ -1,3 +1,5 @@
+import { messages, type Language, type MessageKey } from './i18n';
+
 export const STORAGE_KEY = 'my-homepage:settings:v1';
 export const MAX_IMAGE_BYTES = 1_500_000;
 
@@ -7,12 +9,13 @@ export const searchEngines = {
   baidu: { name: '百度', action: 'https://www.baidu.com/s', query: 'wd' },
 };
 
-export const moduleNames = { time: '时间', search: '搜索', links: '快捷链接' };
-export type ModuleId = keyof typeof moduleNames;
+export const moduleIds = ['time', 'search', 'links'] as const;
+export type ModuleId = typeof moduleIds[number];
 export type QuickLink = { id: string; name: string; url: string };
 
 export type Settings = {
   version: 1;
+  language: Language;
   title: string;
   greeting: string;
   theme: 'dark' | 'light' | 'system';
@@ -32,8 +35,9 @@ export type Settings = {
 
 export const defaultSettings: Settings = {
   version: 1,
-  title: 'My Homepage',
-  greeting: 'welcome to hougou',
+  language: 'zh-CN',
+  title: messages['zh-CN'].defaultTitle,
+  greeting: messages['zh-CN'].defaultGreeting,
   theme: 'dark',
   accentColor: '#8495ff',
   backgroundImage: '',
@@ -68,68 +72,97 @@ export function isBackgroundImage(value: string): boolean {
     (value.length <= MAX_IMAGE_BYTES * 1.4 && /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/.test(value));
 }
 
-export function parseSettings(value: unknown): Settings {
+export class SettingsValidationError extends Error {
+  constructor(public readonly key: MessageKey, language: Language = 'zh-CN') {
+    super(messages[language][key]);
+  }
+}
+
+export function getDefaultSettings(language: Language): Settings {
+  return { ...defaultSettings, language, title: messages[language].defaultTitle, greeting: messages[language].defaultGreeting };
+}
+
+export function changeLanguage(settings: Settings, language: Language): Partial<Settings> {
+  const current = messages[settings.language];
+  const next = messages[language];
+  return {
+    language,
+    title: settings.title === current.defaultTitle ? next.defaultTitle : settings.title,
+    greeting: settings.greeting === current.defaultGreeting ? next.defaultGreeting : settings.greeting,
+  };
+}
+
+export function parseSettings(value: unknown, errorLanguage?: Language): Settings {
+  const language = value && typeof value === 'object' && 'language' in value && value.language === 'en' ? 'en' : 'zh-CN';
+  function fail(key: MessageKey): never {
+    throw new SettingsValidationError(key, errorLanguage ?? language);
+  }
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error('配置需要是一个 JSON 对象。');
+    fail('invalidObject');
   }
   const input = value as Record<string, unknown>;
   if (input.version !== undefined && input.version !== 1) {
-    throw new Error('不支持此配置版本。');
+    fail('invalidVersion');
   }
-  const merged = { ...defaultSettings, ...input };
+  const merged = { ...getDefaultSettings(language), ...input };
+  if (merged.language !== 'zh-CN' && merged.language !== 'en') fail('invalidLanguage');
+  if (input.language === undefined) {
+    if (merged.title === 'My Homepage') merged.title = messages['zh-CN'].defaultTitle;
+    if (merged.greeting === 'welcome to hougou') merged.greeting = messages['zh-CN'].defaultGreeting;
+  }
   if (typeof merged.title !== 'string' || !merged.title.trim() || merged.title.length > 80) {
-    throw new Error('标题不能为空，且最多 80 个字符。');
+    fail('invalidTitle');
   }
   if (typeof merged.greeting !== 'string' || merged.greeting.length > 200) {
-    throw new Error('欢迎语最多 200 个字符。');
+    fail('invalidGreeting');
   }
   if (typeof merged.theme !== 'string' || !['dark', 'light', 'system'].includes(merged.theme) ||
     typeof merged.cardSize !== 'string' || !['small', 'medium', 'large'].includes(merged.cardSize) ||
     typeof merged.searchEngine !== 'string' || !Object.hasOwn(searchEngines, merged.searchEngine) ||
     typeof merged.hourFormat !== 'string' || !['12', '24'].includes(merged.hourFormat)) {
-    throw new Error('主题、卡片大小、搜索引擎或时间格式无效。');
+    fail('invalidOptions');
   }
   if (typeof merged.accentColor !== 'string' || !/^#[0-9a-f]{6}$/i.test(merged.accentColor)) {
-    throw new Error('主题色需要使用六位十六进制颜色。');
+    fail('invalidAccent');
   }
   if (typeof merged.backgroundImage !== 'string' || !isBackgroundImage(merged.backgroundImage)) {
-    throw new Error('背景需使用 HTTP(S) 图片地址，或不超过 1.5 MB 的 PNG、JPEG、WebP、GIF 图片。');
+    fail('invalidBackground');
   }
   for (const key of ['searchNewTab', 'linksNewTab', 'showDate', 'showSeconds'] as const) {
-    if (typeof merged[key] !== 'boolean') throw new Error('开关配置无效。');
+    if (typeof merged[key] !== 'boolean') fail('invalidToggle');
   }
-  const moduleIds = Object.keys(moduleNames) as ModuleId[];
   if (!Array.isArray(merged.modules) || merged.modules.length !== moduleIds.length ||
     new Set(merged.modules).size !== moduleIds.length ||
     !merged.modules.every((moduleId) => moduleIds.includes(moduleId))) {
-    throw new Error('模块顺序需要包含时间、搜索和快捷链接，且不能重复。');
+    fail('invalidModules');
   }
   if (input.visible !== undefined && (!input.visible || typeof input.visible !== 'object' || Array.isArray(input.visible))) {
-    throw new Error('模块显示配置无效。');
+    fail('invalidVisible');
   }
   const visible = { ...defaultSettings.visible, ...input.visible as Partial<Settings['visible']> };
   if (!moduleIds.every((moduleId) => typeof visible[moduleId] === 'boolean')) {
-    throw new Error('模块显示开关无效。');
+    fail('invalidVisibleToggle');
   }
   if (!Array.isArray(merged.quickLinks) || merged.quickLinks.length > 50) {
-    throw new Error('快捷链接最多 50 个。');
+    fail('tooManyLinks');
   }
   const usedIds = new Set<string>();
   const quickLinks = merged.quickLinks.map((item: unknown) => {
-    if (!item || typeof item !== 'object') throw new Error('快捷链接格式无效。');
+    if (!item || typeof item !== 'object') fail('invalidLink');
     const link = item as Record<string, unknown>;
     if (typeof link.name !== 'string' || !link.name.trim() || link.name.length > 60 ||
       typeof link.url !== 'string' || link.url.length > 2048 || !isWebUrl(link.url)) {
-      throw new Error('每个快捷链接需要名称（最多 60 字）和有效的 HTTP(S) 地址。');
+      fail('invalidLinkFields');
     }
     if (typeof link.id !== 'string' || !link.id || link.id.length > 100 || usedIds.has(link.id)) {
-      throw new Error('快捷链接标识不能为空或重复。');
+      fail('invalidLinkId');
     }
     usedIds.add(link.id);
     return { id: link.id, name: link.name.trim(), url: link.url.trim() };
   });
   return {
     version: 1,
+    language: merged.language,
     title: merged.title.trim(),
     greeting: merged.greeting,
     theme: merged.theme,
