@@ -3,6 +3,7 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { changeLanguage, getDefaultSettings, MAX_IMAGE_BYTES, moveItem, parseSettings, searchEngines, SettingsValidationError, type QuickLink, type Settings } from '@/lib/settings';
 import { formatMessage, messages, type Language, type MessageKey } from '@/lib/i18n';
+import { createQuickLinkId } from '@/lib/quick-links';
 import { useSettings } from './SettingsProvider';
 import styles from './SettingsPanel.module.css';
 
@@ -190,7 +191,7 @@ export default function SettingsPanel() {
                   <label className={styles.field}>{text.url}<input type="url" value={link.url} maxLength={2048} placeholder="https://example.com" required onChange={(event) => editLink(link.id, { url: event.target.value })} /></label>
                 </div>
               ))}
-              <button type="button" className={styles.secondaryButton} disabled={settings.quickLinks.length >= 50} onClick={() => update({ quickLinks: [...settings.quickLinks, { id: crypto.randomUUID(), name: '', url: '' }] })}>{text.addLink}</button>
+              <button type="button" className={styles.secondaryButton} disabled={settings.quickLinks.length >= 50} onClick={() => update({ quickLinks: [...settings.quickLinks, { id: createQuickLinkId(), name: '', url: '' }] })}>{text.addLink}</button>
             </>}
 
             {section === 'search' && <>

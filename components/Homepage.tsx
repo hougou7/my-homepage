@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 import styles from '@/app/page.module.css';
 import { isBackgroundImage, isWebUrl, searchEngines } from '@/lib/settings';
 import { formatMessage, messages } from '@/lib/i18n';
+import { getLinkIcon } from '@/lib/quick-links';
 import { useSettings } from './SettingsProvider';
 import SettingsPanel from './SettingsPanel';
 import TimeSection from './TimeSection';
@@ -69,7 +70,7 @@ export default function Homepage() {
               <div className={styles.quickLinksSectionGrid}>
                 {settings.quickLinks.map((link) => (
                   <a key={link.id} href={isWebUrl(link.url) ? link.url : undefined} target={settings.linksNewTab ? '_blank' : undefined} rel="noopener noreferrer" className={styles.quicklink}>
-                    <span className={styles.linkIcon} aria-hidden="true">{link.name.trim().slice(0, 1).toUpperCase() || '+'}</span>
+                    <span className={styles.linkIcon} aria-hidden="true">{getLinkIcon(link.name)}</span>
                     <span className={styles.linkName}>{link.name || text.unnamedLink}</span>
                     <span className={styles.linkHost}>{isWebUrl(link.url) ? new URL(link.url).hostname : text.enterUrl}</span>
                   </a>

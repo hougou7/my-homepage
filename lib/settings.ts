@@ -68,8 +68,23 @@ export function isWebUrl(value: string): boolean {
 }
 
 export function isBackgroundImage(value: string): boolean {
-  return value === '' || isWebUrl(value) ||
-    (value.length <= MAX_IMAGE_BYTES * 1.4 && /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/.test(value));
+  if (value === '' || isWebUrl(value)) return true;
+
+  const prefix = /^data:image\/(?:png|jpeg|webp|gif);base64,/.exec(value)?.[0];
+  if (!prefix) return false;
+
+  const encoded = value.slice(prefix.length);
+  if (!encoded || encoded.length > Math.ceil(MAX_IMAGE_BYTES / 3) * 4 ||
+    !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) {
+    return false;
+  }
+  const padding = encoded.endsWith('==') ? 2 : encoded.endsWith('=') ? 1 : 0;
+  const payloadLength = encoded.length - padding;
+  if (payloadLength % 4 === 1 || (padding > 0 && encoded.length % 4 !== 0)) {
+    return false;
+  }
+  const decodedBytes = Math.floor(payloadLength * 3 / 4);
+  return decodedBytes <= MAX_IMAGE_BYTES;
 }
 
 export class SettingsValidationError extends Error {
