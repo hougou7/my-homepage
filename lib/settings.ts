@@ -53,6 +53,7 @@ export const defaultSettings: Settings = {
   quickLinks: [
     { id: 'chatgpt', name: 'ChatGPT', url: 'https://chat.openai.com/' },
     { id: 'deepseek', name: 'Deepseek', url: 'https://www.deepseek.com/' },
+    { id: 'deepl', name: 'DeepL', url: 'https://www.deepl.com/' },
     { id: 'github', name: 'GitHub', url: 'https://github.com/' },
     { id: 'bilibili', name: 'BiliBili', url: 'https://www.bilibili.com/' },
   ],
